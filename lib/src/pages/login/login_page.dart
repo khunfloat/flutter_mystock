@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:my_stock/src/configs/app_route.dart';
+import 'package:my_stock/src/constants/app_setting.dart';
+import 'package:my_stock/src/constants/asset.dart';
 import 'package:my_stock/src/pages/login/background_theme.dart';
 import 'package:my_stock/src/view_models/sso_viewmodel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatelessWidget {
   final _usernameController = TextEditingController();
@@ -25,7 +29,7 @@ class LoginPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(height: 120),
-                Image.asset('assets/images/logo.png'),
+                Image.asset(Asset.logoImage),
                 Stack(
                   alignment: Alignment.bottomCenter,
                   children: [
@@ -78,13 +82,24 @@ class LoginPage extends StatelessWidget {
                       height: 50,
                       decoration: _boxDecoration(),
                       child: TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           final username = _usernameController.text;
                           final password = _passwordController.text;
 
-                          if (username == "khunfloat@gmail.com" &&
-                              password == "12345678") {
-                            print("login success");
+                          if (username == "admin" && password == "admin") {
+                            SharedPreferences prefs =
+                            await SharedPreferences.getInstance();
+                            // int counter = (prefs.getInt('counter') ?? 0) + 1;
+                            // print('Pressed $counter times.');
+                            // await prefs.setInt('counter', counter);
+
+                            var token = "fjdsjklafjdskla;fjd";
+                            prefs.setString(AppSetting.tokenSetting, token);
+                            prefs.setString(AppSetting.usernameSetting, token);
+
+
+                            Navigator.pushReplacementNamed(
+                              context, AppRoute.homeRoute);
                           } else {
                             print("password is incorrect!!");
                           }
@@ -119,13 +134,14 @@ class LoginPage extends StatelessWidget {
   }
 
   BoxDecoration _boxDecoration() {
-    final gradientStart = BackGroundTheme.gradientStart;
-    final gradientEnd = BackGroundTheme.gradientEnd;
+    final gradientStart = Color(0XFFED213A);
+    final gradientEnd = Color(0XFF93291E);
 
-    final boxShadowItem = (Color color) => BoxShadow(
+    final boxShadowItem = (Color color) =>
+        BoxShadow(
           color: color,
           offset: Offset(1.0, 6.0),
-          blurRadius: 20.0,
+          blurRadius: 3.0,
         );
 
     return BoxDecoration(
@@ -178,7 +194,9 @@ class SSOButton extends StatelessWidget {
           children: SSOViewModel()
               .item
               .map(
-                (item) => FloatingActionButton(
+                (item) =>
+                FloatingActionButton(
+                  heroTag: item.backgroundcolor.toString(),
                   onPressed: item.onPressed,
                   child: FaIcon(
                     item.icon,
@@ -186,7 +204,7 @@ class SSOButton extends StatelessWidget {
                   ),
                   backgroundColor: item.backgroundcolor,
                 ),
-              )
+          )
               .toList()),
     );
   }

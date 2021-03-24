@@ -20,5 +20,22 @@ class BackGroundTheme {
     end: Alignment.topCenter,
     stops: [0.0, 0.7],
   );
+}
 
+class BackGroundThemedark {
+  const BackGroundThemedark();
+
+  static const gradientStart = const Color(0XFFED213A);
+  static const gradientEnd = const Color(0XFF93291E);
+
+  static const gradient = LinearGradient(
+    colors: [
+      gradientStart,
+      gradientEnd,
+
+    ],
+    begin: Alignment.bottomCenter,
+    end: Alignment.topCenter,
+    stops: [0.0, 1.0],
+  );
 }
