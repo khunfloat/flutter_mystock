@@ -10,13 +10,19 @@ import 'package:my_stock/src/services/network.dart';
 import 'package:my_stock/src/view_models/menu_viewmodel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       drawer: CommonDrawer(),
       appBar: AppBar(
-        title: Text("home page"),
+        title: Text("PRODUCT LIST"),
       ),
       body: FutureBuilder<List<ProductResponse>>(
         future: NetworkService().productAll(),
@@ -33,23 +39,31 @@ class HomePage extends StatelessWidget {
 
           final productList = snapshot.data;
 
-          return GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.6,
-              mainAxisSpacing: 4,
-              crossAxisSpacing: 4,
-            ),
-            itemBuilder: (context, index) => LayoutBuilder(
-              builder: (context, constraint) => ShopListItem(
-                constraint.maxHeight,
-                productList[index],
-                press: () {
-                  print("click click");
-                },
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(() {
+
+              });
+            },
+            child: GridView.builder(
+              padding: EdgeInsets.all(8),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.6,
+                mainAxisSpacing: 4,
+                crossAxisSpacing: 4,
               ),
+              itemBuilder: (context, index) => LayoutBuilder(
+                builder: (context, constraint) => ShopListItem(
+                  constraint.maxHeight,
+                  productList[index],
+                  press: () {
+                    print("click click");
+                  },
+                ),
+              ),
+              itemCount: productList.length,
             ),
-            itemCount: productList.length,
           );
         },
       ),
