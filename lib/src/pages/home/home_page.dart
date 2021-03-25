@@ -41,9 +41,7 @@ class _HomePageState extends State<HomePage> {
 
           return RefreshIndicator(
             onRefresh: () async {
-              setState(() {
-
-              });
+              setState(() {});
             },
             child: GridView.builder(
               padding: EdgeInsets.all(8),
@@ -69,7 +67,7 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          //todo
+          Navigator.pushNamed(context, AppRoute.managementRoute);
         },
         tooltip: 'Increment',
         child: Icon(Icons.add),
