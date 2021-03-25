@@ -57,7 +57,11 @@ class _HomePageState extends State<HomePage> {
                   constraint.maxHeight,
                   productList[index],
                   press: () {
-                    print("click click");
+                    Navigator.pushNamed(
+                      context,
+                      AppRoute.managementRoute,
+                      arguments: productList[index],
+                    );
                   },
                 ),
               ),
@@ -72,9 +76,7 @@ class _HomePageState extends State<HomePage> {
             context,
             AppRoute.managementRoute,
           );
-          setState(() {
-
-          });
+          setState(() {});
         },
         tooltip: 'Increment',
         child: Icon(Icons.add),
