@@ -15,19 +15,13 @@ class GoogleMapPage extends StatefulWidget {
 class GoogleMapPageState extends State<GoogleMapPage> {
   Completer<GoogleMapController> _controller = Completer();
 
-  static final CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
+  static final CameraPosition _initMap = CameraPosition(
+    target: LatLng(13.7461216, 100.5325268),
+    zoom: 9,
   );
 
   final dummyData = List<LatLng>();
   final _marker = Set<Marker>();
-
-  static final CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
 
   @override
   void initState() {
@@ -47,9 +41,11 @@ class GoogleMapPageState extends State<GoogleMapPage> {
       body: Stack(
         children: [
           GoogleMap(
+            trafficEnabled: true,
+            zoomControlsEnabled: false,
             markers: _marker,
-            mapType: MapType.hybrid,
-            initialCameraPosition: _kGooglePlex,
+            mapType: MapType.normal,
+            initialCameraPosition: _initMap,
             onMapCreated: (GoogleMapController controller) {
               _controller.complete(controller);
             },
@@ -72,7 +68,7 @@ class GoogleMapPageState extends State<GoogleMapPage> {
 
   Future<void> _pinMarker() async {
     _marker?.clear();
-    for(var LatLng in dummyData){
+    for (var LatLng in dummyData) {
       await _addMarker(
         LatLng,
         title: "cc",
