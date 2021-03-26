@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_stock/src/configs/app_route.dart';
 
 class Menu {
   final String title;
@@ -40,6 +41,7 @@ class MenuViewModel {
       iconColor: Color(0XFF93291E),
       onTap: (context) {
         //todo
+        Navigator.pushNamed(context, AppRoute.mapRoute);
       },
     ),
     Menu(

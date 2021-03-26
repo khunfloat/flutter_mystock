@@ -3,6 +3,7 @@ import 'package:my_stock/src/configs/app_route.dart';
 import 'package:my_stock/src/constants/app_setting.dart';
 import 'package:my_stock/src/pages/home/home_page.dart';
 import 'package:my_stock/src/pages/login/login_page.dart';
+import 'package:my_stock/src/pages/map/google_map_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class App extends StatelessWidget {
