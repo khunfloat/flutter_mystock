@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:my_stock/src/constants/api.dart';
+import 'package:my_stock/src/models/post.dart';
 import 'package:my_stock/src/models/product_response.dart';
 
 class NetworkService {
@@ -73,28 +74,25 @@ class NetworkService {
     throw Exception('Network failed');
   }
 
+  Future<String> editProduct(File imageFile, ProductResponse product) async {
+    FormData data = FormData.fromMap({
+      'name': product.name,
+      'price': product.price,
+      'stock': product.stock,
+      if (imageFile != null)
+        'photo': await MultipartFile.fromFile(
+          imageFile.path,
+          contentType: MediaType('image', 'jpg'),
+        ),
+    });
 
+    final response = await _dio.put('${API.PRODUCT}/${product.id}', data: data);
 
-Future<String> editProduct(File imageFile, ProductResponse product) async {
-  FormData data = FormData.fromMap({
-    'name': product.name,
-    'price': product.price,
-    'stock': product.stock,
-    if (imageFile != null)
-      'photo': await MultipartFile.fromFile(
-        imageFile.path,
-        contentType: MediaType('image', 'jpg'),
-      ),
-  });
-
-  final response = await _dio.put('${API.PRODUCT}/${product.id}', data: data);
-
-  if (response.statusCode == 200) {
-    return 'Edit Successfully';
+    if (response.statusCode == 200) {
+      return 'Edit Successfully';
+    }
+    throw Exception('Network failed');
   }
-  throw Exception('Network failed');
-}
-
 
 //
 // Future<String> deleteProduct(int id) async {
@@ -106,14 +104,14 @@ Future<String> editProduct(File imageFile, ProductResponse product) async {
 //   throw Exception('Network failed');
 // }
 //
-// Future<List<Posts>> fetchPosts(int startIndex, {int limit = 10}) async {
-//   final url =
-//       'https://jsonplaceholder.typicode.com/posts?_start=$startIndex&_limit=$limit';
-//
-//   final Response response = await _dio.get(url);
-//   if (response.statusCode == 200) {
-//     return postsFromJson(jsonEncode(response.data));
-//   }
-//   throw Exception('Network failed');
-// }
+  Future<List<Post>> fetchPosts(int startIndex, {int limit = 10}) async {
+    final url =
+        'https://jsonplaceholder.typicode.com/posts?_start=$startIndex&_limit=$limit';
+
+    final Response response = await _dio.get(url);
+    if (response.statusCode == 200) {
+      return postFromJson(jsonEncode(response.data));
+    }
+    throw Exception('Network failed');
+  }
 }

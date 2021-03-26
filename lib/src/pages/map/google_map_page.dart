@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:my_stock/src/constants/asset.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GoogleMapPage extends StatefulWidget {
   @override
@@ -25,6 +27,7 @@ class GoogleMapPageState extends State<GoogleMapPage> {
   final _marker = Set<Marker>();
 
   bool _permissionGranted;
+  StreamSubscription<LocationData> _locationSubscription;
 
   @override
   void initState() {
@@ -58,13 +61,19 @@ class GoogleMapPageState extends State<GoogleMapPage> {
           ),
           Positioned(
             left: 6,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                primary: Colors.amber,
-              ),
-              onPressed: _pinMarker,
-              label: Text('Pin Biker'),
-              icon: Icon(Icons.pin_drop),
+            child: Row(
+              children: [
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.amber,
+                  ),
+                  onPressed: _pinMarker,
+                  label: Text('Pin Biker'),
+                  icon: Icon(Icons.pin_drop),
+                ),
+                SizedBox(width: 8,),
+                if (_permissionGranted) _buildTrackingButton(),
+              ],
             ),
           ),
         ],
@@ -97,8 +106,7 @@ class GoogleMapPageState extends State<GoogleMapPage> {
     return image.buffer.asUint8List();
   }
 
-  Future<void> _addMarker(
-    LatLng position, {
+  Future<void> _addMarker(LatLng position, {
     String title = 'none',
     String snippet = 'none',
     String pinAsset = Asset.pinBikerImage,
@@ -106,7 +114,10 @@ class GoogleMapPageState extends State<GoogleMapPage> {
   }) async {
     final byteData = await getBytesFromAsset(
       pinAsset,
-      MediaQuery.of(context).size.height * 0.2,
+      MediaQuery
+          .of(context)
+          .size
+          .height * 0.2,
     );
 
     final bitmapDescriptor = BitmapDescriptor.fromBytes(byteData);
@@ -117,15 +128,15 @@ class GoogleMapPageState extends State<GoogleMapPage> {
       position: position,
       infoWindow: isShowInfo
           ? InfoWindow(
-              title: title,
-              snippet: snippet,
-              onTap: () {
-                // _launchMaps(
-                //   position.latitude,
-                //   position.longitude,
-                // );
-              },
-            )
+        title: title,
+        snippet: snippet,
+        onTap: () {
+          _launchMaps(
+            position.latitude,
+            position.longitude,
+          );
+        },
+      )
           : null,
       icon: bitmapDescriptor,
       onTap: () {
@@ -145,6 +156,107 @@ class GoogleMapPageState extends State<GoogleMapPage> {
       if (e.code == 'PERMISSION_DENIED') {
         return print('Permission denied');
       }
+    }
+  }
+
+
+  ElevatedButton _buildTrackingButton() {
+    final isTracking = _locationSubscription != null;
+    return ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        primary: isTracking ? Colors.red : Colors.purpleAccent,
+      ),
+      onPressed: () {
+        _trackingLocation();
+      },
+      label: Text(isTracking ? 'Stop tracking' : 'Start tracking'),
+      icon: Icon(Icons.alt_route),
+    );
+  }
+
+  void _trackingLocation() async {
+    if (_locationSubscription != null) {
+      setState(() {
+        _locationSubscription.cancel();
+        _locationSubscription = null;
+        _marker?.clear();
+      });
+      return;
+    }
+
+    final locationService = Location();
+    await locationService.changeSettings(
+      accuracy: LocationAccuracy.high,
+      interval: 1000,
+      distanceFilter: 100,
+    ); // meters.
+
+    try {
+      final serviceEnabled = await locationService.serviceEnabled();
+      if (!serviceEnabled) {
+        bool serviceStatusResult = await locationService.requestService();
+        print("Service status activated after request: $serviceStatusResult");
+        if (serviceStatusResult) {
+          _trackingLocation();
+        } else {
+          print('Service denied');
+        }
+        return;
+      }
+
+      final granted =
+          await locationService.requestPermission() == PermissionStatus.granted;
+
+      if (!granted) {
+        print('Permission denied');
+        return;
+      }
+
+      _locationSubscription = locationService.onLocationChanged.listen(
+            (LocationData result) async {
+          _marker?.clear();
+          final latLng = LatLng(result.latitude, result.longitude);
+          await _addMarker(
+            latLng,
+            pinAsset: Asset.pinMarkerImage,
+          );
+          setState(() {
+            _animateCamera(latLng);
+          });
+        },
+      );
+    } on PlatformException catch (e) {
+      print('trackingLocation error: ${e.message}');
+      if (e.code == 'PERMISSION_DENIED') {
+        return print('Permission denied');
+      }
+      if (e.code == 'SERVICE_STATUS_ERROR') {
+        return print('Service error');
+      }
+    }
+  }
+
+  Future<void> _animateCamera(LatLng position) async {
+    _controller.future.then((controller) {
+      controller.animateCamera(CameraUpdate.newLatLngZoom(position, 16));
+    });
+  }
+
+
+
+  void _launchMaps(double lat, double lng) async {
+    final parameter = '?z=16&q=$lat,$lng';
+
+    if (Platform.isAndroid) {
+      await launch('https://maps.google.com' + parameter);
+      return;
+    }
+
+    final googleMapSchemeIOS = 'comgooglemaps://';
+    if (await canLaunch(googleMapSchemeIOS)) {
+      launch(googleMapSchemeIOS + parameter);
+    } else {
+      launch('https://maps.apple.com' + parameter);
     }
   }
 

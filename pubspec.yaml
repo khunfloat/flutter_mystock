@@ -37,6 +37,9 @@ dependencies:
   flushbar: ^1.10.4
   google_maps_flutter: ^1.1.1
   location: ^3.2.4
+  url_launcher: ^6.0.3
+  flutter_bloc: ^7.0.0
+  equatable: ^2.0.0
 
 dev_dependencies:
   flutter_test:
